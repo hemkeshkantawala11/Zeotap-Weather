@@ -12,6 +12,8 @@ async function updateWeatherData() {
 
             const condition = weather[0].main;
             const weatherIcon = weather[0].icon;
+            const weatherDescription = weather[0].description;
+            const pressure = main.pressure;
 
             const summary = {
                 date: new Date(dt * 1000),
@@ -20,12 +22,14 @@ async function updateWeatherData() {
                 maxTemp: main.temp_max,
                 minTemp: main.temp_min,
                 dominantCondition: condition,
+                weatherDescription: weatherDescription,
                 avgHumidity: main.humidity,
                 maxHumidity: main.humidity,
                 minHumidity: main.humidity,
                 avgWindSpeed: wind.speed,
                 maxWindSpeed: wind.speed,
                 totalPrecipitation: response.data.rain ? response.data.rain['1h'] || 0 : 0,
+                pressure: pressure,
                 conditionFrequency: { [condition]: 1 },
                 weatherIcon: weatherIcon,
             };
@@ -45,6 +49,8 @@ async function updateWeatherData() {
                 existingRecord.avgWindSpeed = (existingRecord.avgWindSpeed + data.avgWindSpeed) / 2;
                 existingRecord.maxWindSpeed = Math.max(existingRecord.maxWindSpeed, data.maxWindSpeed);
                 existingRecord.totalPrecipitation += data.totalPrecipitation;
+                existingRecord.pressure = data.pressure;
+                existingRecord.weatherDescription = data.weatherDescription;
 
                 existingRecord.conditionFrequency.set(data.dominantCondition,
                     (existingRecord.conditionFrequency.get(data.dominantCondition) || 0) + 1);

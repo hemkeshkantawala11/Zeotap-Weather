@@ -19,6 +19,7 @@ app.use(cors());
 mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true })
     .then(async () => {
         console.log('MongoDB connected');
+        // generateDailyRollout();
         await generateDailyRollout(); // Generate the first rollout when the server starts
         setInterval(generateDailyRollout, 24 * 60 * 60 * 1000); // Schedule daily rollouts
     })
