@@ -9,6 +9,7 @@ This project is a weather monitoring system that fetches weather data from an ex
 - Displays weather data and icons on a React frontend.
 - Generates daily rollouts for each city.
 - Alerts based on weather conditions.
+- Includes an alert seeder file to initialize alerts based on predefined conditions.
 
 ## Technologies Used
 - **Backend**: Node.js, Express.js, Mongoose
