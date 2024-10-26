@@ -1,5 +1,6 @@
 // server/src/weatherController.js
 const Weather = require('./weatherModel');
+const Alert = require('./alertModel');
 const weatherService = require('./weatherService');
 
 async function updateWeatherData() {
@@ -10,6 +11,7 @@ async function updateWeatherData() {
             const { main, weather, wind, dt, name: city } = response.data;
 
             const condition = weather[0].main;
+            const weatherIcon = weather[0].icon;
 
             const summary = {
                 date: new Date(dt * 1000),
@@ -25,6 +27,7 @@ async function updateWeatherData() {
                 maxWindSpeed: wind.speed,
                 totalPrecipitation: response.data.rain ? response.data.rain['1h'] || 0 : 0,
                 conditionFrequency: { [condition]: 1 },
+                weatherIcon: weatherIcon,
             };
 
             return summary;
@@ -45,10 +48,32 @@ async function updateWeatherData() {
 
                 existingRecord.conditionFrequency.set(data.dominantCondition,
                     (existingRecord.conditionFrequency.get(data.dominantCondition) || 0) + 1);
+                existingRecord.weatherIcon = data.weatherIcon;
                 await existingRecord.save();
             } else {
                 await Weather.create(data);
             }
+
+            // Check for alerts
+            const alerts = await Alert.find({ city: data.city });
+            alerts.forEach(alert => {
+                let reason = '';
+                if (data.maxTemp > alert.conditions.maxTemp) reason += 'High temperature, ';
+                if (data.minTemp < alert.conditions.minTemp) reason += 'Low temperature, ';
+                if (data.avgHumidity > alert.conditions.maxHumidity) reason += 'High humidity, ';
+                if (data.avgHumidity < alert.conditions.minHumidity) reason += 'Low humidity, ';
+                if (data.avgWindSpeed > alert.conditions.maxWindSpeed) reason += 'High wind speed, ';
+                if (data.avgWindSpeed < alert.conditions.minWindSpeed) reason += 'Low wind speed, ';
+                if (data.totalPrecipitation > alert.conditions.maxPrecipitation) reason += 'High precipitation, ';
+                if (data.totalPrecipitation < alert.conditions.minPrecipitation) reason += 'Low precipitation, ';
+
+                if (reason) {
+                    reason = reason.slice(0, -2); // Remove trailing comma and space
+                    alert.reason = reason;
+                    alert.message = `Alert for ${data.city}: ${reason}`;
+                    alert.save();
+                }
+            });
         }));
 
         console.log('Weather data updated successfully');

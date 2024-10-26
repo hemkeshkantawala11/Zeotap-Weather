@@ -1,6 +1,7 @@
 // server/src/rolloutController.js
 const Rollout = require('./rolloutModel');
 const Weather = require('./weatherModel');
+const { checkAlerts } = require('./alertController');
 
 const generateDailyRollout = async () => {
     try {
@@ -18,11 +19,14 @@ const generateDailyRollout = async () => {
                         minTemp: latestWeather.minTemp,
                         avgHumidity: latestWeather.avgHumidity,
                         avgWindSpeed: latestWeather.avgWindSpeed,
-                        pressure: latestWeather.pressure || 0, // Ensure pressure is provided
+                        pressure: latestWeather.pressure || 0,
+                        weatherDescription: latestWeather.weatherDescription,
+                        weatherIcon: latestWeather.weatherIcon
                     }
                 });
                 await rollout.save();
                 console.log(`Daily rollout generated for ${city}`);
+                await checkAlerts(latestWeather);
             } else {
                 console.log(`No weather data available to generate rollout for ${city}`);
             }

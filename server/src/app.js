@@ -1,13 +1,16 @@
 // server/src/app.js
 const express = require('express');
 const mongoose = require('mongoose');
-const dotenv = require('dotenv');
+// const dotenv = require('dotenv');
 const { updateWeatherData } = require('./weatherController');
 const cors = require('cors');
 const { generateDailyRollout } = require('./rolloutController');
 const axios = require('axios');
+const { getAlertsForCity } = require('./alertController');
+const Rollout = require('./rolloutModel');
+const Weather = require('./weatherModel');
 
-dotenv.config();
+// dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
@@ -98,6 +101,17 @@ app.get('/weather-detail/:city', async (req, res) => {
     } catch (error) {
         console.error('Error fetching weather details for city:', error);
         res.status(500).json({ error: 'Error fetching weather details for city' });
+    }
+});
+
+app.get('/alerts/:city', async (req, res) => {
+    const { city } = req.params;
+    try {
+        const alerts = await getAlertsForCity(city);
+        res.json(alerts);
+    } catch (error) {
+        console.error('Error fetching alerts:', error);
+        res.status(500).json({ error: 'Error fetching alerts' });
     }
 });
 
